@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tracks Bar &amp; Grill Financial Review</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: MG brand band with tabs, then one 960px column per tab. Review tabs render from CONFIG objects; the budget tab renders from BUDGET data. */
+:root{
+  --bg:#FAF8FD; --surface:#FFFFFF; --ink:#1F1630; --muted:#615873; --line:#E5DEF0; --lav:#EDE7F6;
+  --purple:#350072; --purple-ink:#350072; --magenta:#932787; --orange:#F7931E; --orange-ink:#A85C00;
+  --teal:#009245; --teal-ink:#007A39; --sky:#1E9CD7; --neg:#B4234F; --fc:#B79BE0;
+  --band:#350072; --band-fg:#FFFFFF; --band-muted:#D9C9F2;
+  --display:"Bricolage Grotesque", "Hanken Grotesk", system-ui, sans-serif;
+  --body:"Hanken Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#130A20; --surface:#1D1330; --ink:#F2EDF9; --muted:#B5AAC8; --line:#372A4D; --lav:#281B3D;
+  --purple:#9B6BE0; --purple-ink:#C8A8F5; --magenta:#D267C2; --orange:#F7A440; --orange-ink:#F7B160;
+  --teal:#22B565; --teal-ink:#4CD08A; --sky:#4DB5E6; --neg:#F07196; --fc:#5E4590;
+  --band:#26104A; --band-fg:#FFFFFF; --band-muted:#CDB8EE; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#130A20; --surface:#1D1330; --ink:#F2EDF9; --muted:#B5AAC8; --line:#372A4D; --lav:#281B3D;
+  --purple:#9B6BE0; --purple-ink:#C8A8F5; --magenta:#D267C2; --orange:#F7A440; --orange-ink:#F7B160;
+  --teal:#22B565; --teal-ink:#4CD08A; --sky:#4DB5E6; --neg:#F07196; --fc:#5E4590;
+  --band:#26104A; --band-fg:#FFFFFF; --band-muted:#CDB8EE; color-scheme:dark }
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;margin:0}
+.wrap{max-width:960px;margin:0 auto;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.15}
+h2{font-size:1.35rem;font-weight:700;color:var(--purple-ink)}
+p{margin:0}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+
+.band{background:var(--band);color:var(--band-fg)}
+.band .wrap{padding-block:20px 0;display:grid;gap:14px}
+.bandtop{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.mark{width:36px;height:36px;border-radius:9px;display:grid;place-items:center;font-family:var(--display);font-weight:800;color:#fff;background:linear-gradient(135deg,#932787 0%,#F7931E 100%)}
+.logo b{font-family:var(--display);font-size:.95rem}
+.band h1{font-size:clamp(1.6rem,4vw,2.3rem);font-weight:800}
+.band .sub{color:var(--band-muted);font-size:.92rem;margin-top:4px}
+.stripe{display:flex;gap:4px;padding-bottom:6px}
+.stripe i{width:24px;height:5px;border-radius:3px;display:block}
+.tabs{display:flex;gap:4px;overflow-x:auto}
+.tabs button{font:inherit;font-weight:600;font-size:.92rem;color:var(--band-muted);background:transparent;border:0;border-radius:10px 10px 0 0;padding:10px 16px;cursor:pointer;white-space:nowrap}
+.tabs button[aria-selected="true"]{background:var(--bg);color:var(--purple-ink)}
+.tabs button:focus-visible{outline:3px solid var(--orange);outline-offset:-3px}
+
+main .wrap{padding-block:26px 44px}
+.view{display:grid;gap:30px}
+section{display:grid;gap:12px;min-width:0}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;min-width:0}
+.archive{background:color-mix(in srgb,var(--orange) 14%,var(--surface));border:1px solid color-mix(in srgb,var(--orange) 50%,transparent);border-radius:12px;padding:12px 16px;font-size:.9rem}
+
+.summary{max-width:70ch}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;gap:2px;align-content:start}
+.kpi .k{font-size:.76rem;color:var(--muted);font-weight:600}
+.kpi .v{font-family:var(--display);font-size:1.5rem;font-weight:700}
+.kpi .n{font-size:.78rem;color:var(--muted)}
+.kpi.flagged{border-color:color-mix(in srgb,var(--orange) 70%,transparent)}
+.kpi.flagged .n{color:var(--orange-ink);font-weight:600}
+
+.bench{display:grid;grid-template-columns:120px minmax(0,1fr) max-content;column-gap:16px;align-items:center}
+.brow{display:contents}
+.brow>*{padding:10px 0;border-bottom:1px solid var(--line);align-self:stretch;display:flex;align-items:center}
+.brow:last-child>*{border-bottom:0}
+.brow b{font-family:var(--display);font-size:.98rem}
+.track{position:relative;height:46px;min-width:0}
+.track>span{margin-top:10px}
+.rail{position:absolute;left:0;right:0;top:11px;height:4px;border-radius:2px;background:var(--line)}
+.bandr{position:absolute;top:6px;height:14px;border-radius:7px;background:color-mix(in srgb,var(--teal) 28%,transparent);border:1px solid color-mix(in srgb,var(--teal) 60%,transparent)}
+.mk{position:absolute;top:1px;width:4px;height:24px;margin-left:-2px;border-radius:2px;background:var(--purple-ink)}
+.wa{position:absolute;top:3px;width:3px;height:20px;margin-left:-1.5px;border-radius:2px;background:var(--orange)}
+.bval{display:flex;gap:8px;align-items:center;justify-content:flex-end;font-variant-numeric:tabular-nums;font-size:.9rem}
+.bval span{white-space:nowrap}
+.bval strong{font-family:var(--display);font-size:1.05rem}
+.legend{font-size:.78rem;color:var(--muted);margin-top:8px}
+.chip{font-size:.68rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:99px;white-space:nowrap}
+.c-hi{background:color-mix(in srgb,var(--neg) 15%,transparent);color:var(--neg)}
+.c-mid{background:color-mix(in srgb,var(--orange) 20%,transparent);color:var(--orange-ink)}
+.c-ok{background:color-mix(in srgb,var(--teal) 16%,transparent);color:var(--teal-ink)}
+
+.ahead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.tally{display:flex;flex-wrap:wrap;gap:6px}
+.group h3{font-size:.76rem;letter-spacing:.08em;text-transform:uppercase;color:var(--magenta);padding:16px 0 2px}
+.group:first-child h3{padding-top:0}
+.row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}
+.row.ro{grid-template-columns:1fr}
+.group .row:last-child{border-bottom:0}
+.row .what{display:grid;gap:3px;align-content:start;min-width:0}
+.row .what b{font-family:var(--display);font-size:1rem}
+.row .what span{font-size:.86rem;color:var(--muted)}
+.chk{display:flex;align-items:flex-start;gap:10px;cursor:pointer}
+.chk input{width:18px;height:18px;margin:3px 0 0;accent-color:var(--teal);flex:none;cursor:pointer}
+.row .dnote{display:none}
+.row.done{grid-template-columns:1fr;padding:6px 0}
+.row.done .what>span:not(.dnote),.row.done .edit{display:none}
+.row.done .what b{text-decoration:line-through;color:var(--muted);font-weight:600}
+.row.done .dnote{display:block;font-size:.8rem;color:var(--muted);padding-left:28px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row.priority .what b::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--orange);margin-right:8px;vertical-align:middle}
+.edit{display:grid;gap:6px;min-width:0}
+.ctl{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px}
+select{padding:5px 8px;font-size:.85rem;font-weight:600}
+textarea{width:100%;min-height:44px;padding:8px 10px;font-size:.92rem;line-height:1.4;resize:vertical}
+.stamp{font-size:.74rem;color:var(--muted)}
+.st{font-size:.68rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:99px;white-space:nowrap}
+.st-open{background:color-mix(in srgb,var(--muted) 16%,transparent);color:var(--muted)}
+.st-discussed{background:color-mix(in srgb,var(--sky) 18%,transparent);color:var(--sky)}
+.st-waiting{background:color-mix(in srgb,var(--orange) 20%,transparent);color:var(--orange-ink)}
+.st-resolved{background:color-mix(in srgb,var(--teal) 18%,transparent);color:var(--teal-ink)}
+.foot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding-top:12px;border-top:1px solid var(--line);margin-top:4px}
+.savestate{font-size:.82rem;color:var(--muted)}
+.btn{font:inherit;font-weight:600;font-size:.86rem;padding:7px 14px;border-radius:8px;border:1px solid var(--purple);background:var(--purple);color:#fff;cursor:pointer}
+.btn:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible,.seg button:focus-visible,.box:focus-visible,tr.click:focus-visible{outline:3px solid color-mix(in srgb,var(--sky) 60%,transparent);outline-offset:2px}
+
+details{background:var(--surface);border:1px solid var(--line);border-radius:12px}
+details+details{margin-top:8px}
+summary{cursor:pointer;padding:12px 16px;font-family:var(--display);font-weight:700;color:var(--purple-ink)}
+details>div{padding:0 16px 16px;display:grid;gap:10px}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{padding:6px 8px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap;font-variant-numeric:tabular-nums}
+th:first-child,td:first-child{text-align:left}
+thead th{font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+tr.sub td{font-weight:700;background:var(--lav)}
+tr.total td{font-weight:800;border-top:2px solid var(--purple)}
+.note{font-size:.82rem;color:var(--muted)}
+.chart{width:100%;height:auto;display:block}
+svg text{font-family:var(--body)}
+
+/* Budget */
+.bctl{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center}
+.bctl .lab{font-size:.76rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.seg{display:inline-flex;flex-wrap:wrap;gap:4px}
+.seg button{font:inherit;font-size:.85rem;font-weight:600;padding:6px 12px;border-radius:99px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--purple);border-color:var(--purple);color:#fff}
+.seg button .tag{font-size:.7rem;opacity:.8;margin-left:4px}
+.boxes{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.box{font:inherit;text-align:left;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;gap:3px;cursor:pointer;align-content:start}
+.box:hover{border-color:var(--purple)}
+.box[aria-pressed="true"]{border-color:var(--purple);box-shadow:inset 0 0 0 1px var(--purple);background:var(--lav)}
+.box .k{font-size:.76rem;color:var(--muted);font-weight:600}
+.box .v{font-family:var(--display);font-size:1.3rem;font-weight:700;font-variant-numeric:tabular-nums}
+.box .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.box.rev{border-top:3px solid var(--purple)}
+.box.net{border-top:3px solid var(--teal)}
+.up{color:var(--teal-ink)} .down{color:var(--neg)}
+.detail{display:grid;gap:12px}
+.detail h3{font-size:1.1rem;color:var(--purple-ink)}
+tr.click{cursor:pointer}
+tr.click:hover td{background:var(--lav)}
+tr.sel td{background:var(--lav);font-weight:700}
+.waiting{display:grid;gap:6px;justify-items:start}
+.legendrow{display:flex;gap:16px;flex-wrap:wrap;font-size:.8rem;color:var(--muted)}
+.legendrow i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+
+.key summary{font-size:1rem}
+.keygrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px 22px;padding:4px 16px 16px}
+.keygrid div{display:grid;gap:2px;font-size:.84rem;align-content:start}
+.keygrid b{font-family:var(--display);font-size:.86rem;color:var(--purple-ink)}
+.keygrid span{color:var(--muted)}
+.sw{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:-1px;margin-right:4px}
+.bizview{display:grid;gap:30px}
+.bizbar{padding:12px 18px}
+.headline p:first-child{font-size:1.15rem;line-height:1.55;max-width:62ch}
+.headline{display:grid;gap:8px}
+.sboxes{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+.sbox{font:inherit;text-align:left;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:2px;cursor:pointer;align-content:start}
+.sbox:hover{border-color:var(--purple)}
+.sbox[aria-pressed="true"]{background:var(--lav);box-shadow:inset 0 0 0 1px var(--purple)}
+.sbox .k{font-weight:700;font-size:.9rem}
+.sbox .v{font-family:var(--display);font-size:1.5rem;font-weight:700;font-variant-numeric:tabular-nums}
+.sbox .cents{font-family:var(--display);font-size:1.05rem;font-weight:700;color:var(--purple-ink);margin-top:4px}
+.sbox .d{font-size:.78rem;color:var(--muted)}
+.sb-in{border-top-color:var(--purple)} .sb-food{border-top-color:var(--magenta)} .sb-staff{border-top-color:var(--sky)} .sb-other{border-top-color:var(--orange)} .sb-left{border-top-color:var(--teal)}
+.whatif{display:grid;gap:14px}
+.whatif .q{font-weight:700;margin-bottom:6px}
+.mlist{display:grid;max-width:420px}
+.mlist div{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+.mlist .tot{border-bottom:0;border-top:2px solid var(--purple);font-weight:800}
+.how ul{margin:8px 0 0;padding-left:18px;display:grid;gap:4px}
+.how h3{font-size:1rem;color:var(--purple-ink)}
+details.inner{border:0;background:transparent}
+details.inner summary{padding:6px 0;font-size:.9rem}
+details.inner>div{padding:0}
+table.simple td,table.simple th{font-size:.92rem;padding:8px}
+@media (max-width:760px){.sboxes{grid-template-columns:1fr 1fr}}
+.thsub{display:block;font-size:.62rem;font-weight:600;letter-spacing:.02em;text-transform:none}
+.mcallouts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.mcallouts div{display:grid;gap:2px;background:var(--lav);border-radius:10px;padding:10px 12px;font-variant-numeric:tabular-nums}
+.mcallouts .k{font-size:.74rem;color:var(--muted);font-weight:600}
+.mcallouts b{font-family:var(--display);font-size:1.05rem}
+@media (max-width:760px){.mcallouts{grid-template-columns:1fr}}
+footer .wrap{padding-block:16px 28px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:.8rem;color:var(--muted);border-top:1px solid var(--line)}
+footer b{color:var(--purple-ink);font-family:var(--display)}
+
+@media (max-width:760px){
+  .kpis{grid-template-columns:1fr 1fr}
+  .bench{grid-template-columns:1fr}
+  .brow>*{border-bottom:0;padding:4px 0}
+  .brow>.bval{border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:8px;justify-content:flex-start;flex-wrap:wrap}
+  .brow:last-child>.bval{border-bottom:0}
+  .track>span{margin-top:4px}
+  .row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<header class="band">
+  <div class="wrap">
+    <div class="bandtop">
+      <div>
+        <div class="logo"><div class="mark" aria-hidden="true">MG</div><b>MG Business Solutions</b></div>
+        <h1 id="bandTitle">The Tracks Bar &amp; Grill</h1>
+        <p class="sub" id="bandSub"></p>
+      </div>
+      <div class="stripe" aria-hidden="true"><i style="background:#932787"></i><i style="background:#F7931E"></i><i style="background:#009245"></i><i style="background:#1E9CD7"></i></div>
+    </div>
+    <div class="tabs" role="tablist" aria-label="Report views">
+      <button role="tab" id="tab-review" aria-controls="view-review" data-view="review">This week · Nov 24</button>
+      <button role="tab" id="tab-nov-11" aria-controls="view-nov-11" data-view="nov-11">Last meeting · Nov 11</button>
+      <button role="tab" id="tab-budget" aria-controls="view-budget" data-view="budget">Budget &amp; forecast</button>
+    </div>
+  </div>
+</header>
+
+<main><div class="wrap">
+  <div class="view" id="view-review" role="tabpanel" aria-labelledby="tab-review"></div>
+  <div class="view" id="view-nov-11" role="tabpanel" aria-labelledby="tab-nov-11" hidden></div>
+  <div class="view" id="view-budget" role="tabpanel" aria-labelledby="tab-budget" hidden></div>
+</div></main>
+
+<footer><div class="wrap"><span><b>MG Business Solutions, LLC</b> · Phoenix, AZ</span><span>Prepared from unaudited QuickBooks records for management review only.</span></div></footer>
+
+<script>
+/* ===== CONFIG: this week's review ===== */
+const CONFIG={
+  period:'Financial review · Jan 1 – Nov 24, 2026 · Updated from QuickBooks Nov 24, 2026',
+  summary:'Sales are steady at about $38.7K a month, and labor is actually below the Washington average. The gap is food and liquor cost, which runs about 10 points above Washington peers. QuickBooks shows $38.6K of net income, which is likely overstated because sales tax hasn’t been fully taken out of sales. Three items from you will let us finish the books.',
+  kpis:[
+    {k:'Sales',v:'$413.3K',n:'Jan 1 – Nov 24'},
+    {k:'Net income (booked)',v:'$38.6K',n:'Closer to $24.7K after sales tax gap',flag:true},
+    {k:'Prime cost',v:'75.7%',n:'Typical: 55–65%',flag:true},
+    {k:'Owed by Little Crane',v:'$47.6K',n:'No change since Nov 11'}
+  ],
+  bench:{max:80,note:'Green band = typical U.S. range for full-service restaurants. Orange tick = Washington full-service average (WA Hospitality Association, Restaurant Dollar Report). Purple mark = The Tracks, as % of sales. QuickBooks regional peers (WA full-service): yearly profit $29,722 vs. $20,924 for The Tracks.',rows:[
+    {k:'Prime cost',v:75.7,lo:55,hi:65,wa:68.2,s:'hi',t:'Above WA avg'},
+    {k:'Food & liquor',v:39.5,lo:28,hi:35,wa:28.8,s:'hi',t:'Well above'},
+    {k:'Labor',v:36.6,lo:30,hi:35,wa:39.4,s:'ok',t:'Below WA avg'},
+    {k:'Net margin',v:9.3,lo:3,hi:8,wa:1.5,s:'mid',t:'Overstated'}
+  ]},
+  agenda:[
+    {group:'We need from you',items:[
+      {id:'loan',p:1,t:'Loan payments to Little Crane',d:'$2,737.17 goes to Little Crane every month ($30.1K YTD). Which loan is it, whose is it, and can we get the statement?'},
+      {id:'salestax',p:1,t:'Accurate sales tax data',d:'Our estimate is 4–5% of deposits; DOR payments run 8–9%. Need 2026 excise returns or DOR access, plus the B&O split. October’s payment is due Nov 25.'},
+      {id:'kwick',p:1,t:'New Kwick POS PIN',d:'Our PIN can’t run company-wide reports. Need a manager or owner PIN with sales, tax and payment reports.'}
+    ]},
+    {group:'Quick questions',items:[
+      {id:'rent',t:'Rent or mortgage',d:'None recorded. Does Tracks pay rent, or is the Little Crane payment a building loan?'},
+      {id:'acct0723',t:'Account ending 0723',d:'Sept–Oct transfers came from it. Whose account is it?'},
+      {id:'cash',t:'Cash withdrawals, $2,225',d:'June–August. What was the cash for?'},
+      {id:'affirm',t:'Affirm payment, $570.40',d:'January 9. What was purchased?'},
+      {id:'utilities',t:'Garbage & internet',d:'Utilities rose $586 since Nov 11. Confirm garbage and internet are now current.'},
+      {id:'hawknet',t:'HawkNet charge, $68.85',d:'November 4. Ask Mark what this charge is for and whether it recurs.'}
+    ]},
+    {group:'MG to do',items:[
+      {id:'recon',t:'Reconcile checking x4046',d:'Book balance is $2,259.54 as of Nov 24 (was ($2,402.72) on Nov 11).'},
+      {id:'bsni',t:'Tie balance sheet to P&L',d:'Balance sheet shows $11,990.92 YTD net income; the P&L shows $38,641.18. Check fiscal year and closing settings.'},
+      {id:'peacock',t:'Recode $18.34 streaming charge',d:'Out of owner draws, into entertainment.'}
+    ]}
+  ],
+  detail:[
+    {title:'Monthly sales',type:'bars',months:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov*'],
+      values:[34436,28711,32901,39413,40540,48290,44330,43236,39702,35040,26696],note:'QuickBooks income by month. *November through the 24th.'},
+    {title:'Profit & loss, year to date',type:'table',head:['Account','Amount','% of sales'],rows:[
+      ['s','Sales','$413,295.42','100.0%'],['','Groceries','114,207.12','27.6%'],['','Beverages, liquor','48,893.15','11.8%'],
+      ['s','Gross profit','$250,195.15','60.5%'],['','Wages, payroll taxes & fees','151,174.84','36.6%'],['','Insurance','17,374.39','4.2%'],
+      ['','Merchant fees & bank charges','14,469.21','3.5%'],['','Utilities','10,396.09','2.5%'],['','Repairs & maintenance','8,435.96','2.0%'],
+      ['','Other operating expenses','15,353.77','3.7%'],['s','Net operating income','$32,990.89','8.0%'],['','Prior-year corrections (other income)','5,650.29','1.4%'],
+      ['t','Net income (booked)','$38,641.18','9.3%']]},
+    {title:'Little Crane balance',type:'table',head:['Activity','Amount'],rows:[
+      ['','Owed by Little Crane, Jan 1','$36,369.06'],['','Correction, transfers booked incorrectly','(2,650.00)'],
+      ['','Monthly $2,737.17 transfers out (11)','30,108.87'],['','Other transfers out (3)','3,700.00'],
+      ['','Transfers back from Little Crane (16)','(19,907.47)'],['t','Owed by Little Crane, Nov 24','$47,620.46']]},
+    {title:'Sales tax: booked vs. paid',type:'table',head:['Sales month','Deposits','Booked','Paid to DOR','Gap'],rows:[
+      ['','Jan','34,436.42','–','not in ledger','–'],['','Feb','27,781.50','–','2,555.41','2,555.41'],['','Mar','31,818.98','–','2,514.15','2,514.15'],
+      ['','Apr','39,965.24','1,994.27','3,604.19','1,609.92'],['','May','41,077.85','2,035.00','3,815.99','1,780.99'],['','Jun','48,716.18','2,044.26','3,856.20','1,811.94'],
+      ['','Jul','44,878.67','2,095.21','3,875.38','1,780.17'],['','Aug','44,275.23','2,111.67','3,992.21','1,880.54'],['','Sep','40,326.13','1,677.52','3,097.35','1,419.83'],
+      ['','Oct','35,503.61','1,416.05','due Nov 25','–'],['t','Total','','13,373.98','27,310.88','13,936.90']],
+      note:'Sales Tax Payable is still ($13,936.90) on the Nov 24 balance sheet. Assumes monthly filing, paid the following month. DOR payments may include B&O tax.'}
+  ]
+};
+
+/* ===== CONFIG_PREV: the Nov 11 review, kept as presented ===== */
+const CONFIG_PREV={
+  period:'Financial review · Jan 1 – Nov 11, 2026 · Prepared Nov 11, 2026',
+  banner:'Archived view of the November 11 meeting, as presented. One figure was later corrected: the $5,650.29 prior-year correction is other income, so booked net income through Nov 11 was $34.0K, not $22.7K.',
+  summary:'Sales are steady at about $38.7K a month, but food, liquor and labor take 76¢ of every dollar. Booked profit is $22.7K, and it is likely overstated because sales tax hasn’t been fully taken out of sales. Three items from you will let us finish the books.',
+  kpis:[
+    {k:'Sales',v:'$396.3K',n:'Year to date'},
+    {k:'Net income (booked)',v:'$22.7K',n:'Likely closer to $8.8K',flag:true},
+    {k:'Prime cost',v:'76.4%',n:'Typical: 55–65%',flag:true},
+    {k:'Owed by Little Crane',v:'$47.6K',n:'Up $11.3K this year'}
+  ],
+  bench:{max:80,note:'Green band = typical range for full-service restaurants and bars. Purple mark = The Tracks, as % of sales. General industry ranges, not a matched peer set.',rows:[
+    {k:'Prime cost',v:76.4,lo:55,hi:65,s:'hi',t:'Above'},
+    {k:'Food & liquor',v:39.5,lo:28,hi:35,s:'hi',t:'Above'},
+    {k:'Labor',v:37.3,lo:30,hi:35,s:'mid',t:'Slightly high'},
+    {k:'Net margin',v:5.7,lo:3,hi:8,s:'mid',t:'At risk'}
+  ]},
+  agenda:[
+    {group:'We need from you',items:[
+      {id:'loan',p:1,t:'Loan payments to Little Crane',d:'$2,737.17 goes to Little Crane every month ($30.1K YTD). Which loan is it, whose is it, and can we get the statement?'},
+      {id:'salestax',p:1,t:'Accurate sales tax data',d:'Our estimate is 4–5% of deposits; DOR payments run 8–9%. Need 2026 excise returns or DOR access, plus the B&O split.'},
+      {id:'kwick',p:1,t:'New Kwick POS PIN',d:'Our PIN can’t run company-wide reports. Need a manager or owner PIN with sales, tax and payment reports.'}
+    ]},
+    {group:'Quick questions',items:[
+      {id:'rent',t:'Rent or mortgage',d:'None recorded. Does Tracks pay rent, or is the Little Crane payment a building loan?'},
+      {id:'acct0723',t:'Account ending 0723',d:'Sept–Oct transfers came from it. Whose account is it?'},
+      {id:'cash',t:'Cash withdrawals, $2,225',d:'June–August. What was the cash for?'},
+      {id:'affirm',t:'Affirm payment, $570.40',d:'January 9. What was purchased?'},
+      {id:'utilities',t:'Garbage & internet',d:'No bills after August. Paid elsewhere?'}
+    ]},
+    {group:'MG to do',items:[
+      {id:'recon',t:'Reconcile checking x4046',d:'Book balance ($2,402.72) as of Nov 11.'},
+      {id:'peacock',t:'Recode $18.34 streaming charge',d:'Out of owner draws, into entertainment.'}
+    ]}
+  ],
+  detail:[
+    {title:'Monthly sales',type:'bars',months:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov*'],
+      values:[34436,27782,31819,39965,41078,48716,44879,44275,40326,35504,9696],note:'Bank deposits (card + cash). *November through the 11th.'},
+    {title:'Profit & loss, year to date',type:'table',head:['Account','Amount','% of sales'],rows:[
+      ['s','Sales','$396,295.88','100.0%'],['','Groceries','109,449.58','27.6%'],['','Beverages, liquor','47,177.40','11.9%'],
+      ['s','Gross profit','$239,668.90','60.5%'],['','Wages, payroll taxes & fees','147,727.21','37.3%'],['','Insurance','15,741.87','4.0%'],
+      ['','Merchant fees & bank charges','14,469.21','3.7%'],['','Utilities','9,809.90','2.5%'],['','Repairs & maintenance','8,435.96','2.1%'],
+      ['','Other operating expenses','15,121.75','3.8%'],['s','Operating income','$28,363.00','7.2%'],['','Prior-year corrections (one-time)','5,650.29','1.4%'],
+      ['t','Net income (booked)','$22,712.71','5.7%']]},
+    {title:'Little Crane balance',type:'table',head:['Activity','Amount'],rows:[
+      ['','Owed by Little Crane, Jan 1','$36,369.06'],['','Correction, transfers booked incorrectly','(2,650.00)'],
+      ['','Monthly $2,737.17 transfers out (11)','30,108.87'],['','Other transfers out (3)','3,700.00'],
+      ['','Transfers back from Little Crane (16)','(19,907.47)'],['t','Owed by Little Crane, Nov 11','$47,620.46']]}
+  ]
+};
+
+/* ===== CONFIG_LC: Little Crane Cafe, this week ===== */
+const CONFIG_LC={
+  period:'Financial review · Jan 1 – Oct 31, 2026 · From Little Crane P&L detail (cash basis)',
+  summary:'The cafe brings in about $78K a month but lost $48.9K through October. Payroll is the main gap at 47% of recorded sales, about 8 points above the Washington average, while food cost is in range. Sales tax payments are booked as B&O expense, which inflates both sales and costs.',
+  kpis:[
+    {k:'Sales',v:'$784.4K',n:'Jan – Oct · about $78.4K/mo'},
+    {k:'Net income',v:'-$48.9K',n:'-6.2% of sales (cash basis)',flag:true},
+    {k:'Payroll',v:'47.3%',n:'WA average 39.4%',flag:true},
+    {k:'B&O / DOR payments',v:'$102.8K',n:'13.1% of sales; includes sales tax',flag:true}
+  ],
+  bench:{max:80,note:'Green band = typical U.S. range for full-service restaurants. Orange tick = Washington full-service average (WA Hospitality Association). Purple mark = Little Crane Cafe, as % of recorded sales, which still include sales tax. A net loss shows at the left edge.',rows:[
+    {k:'Prime cost',v:76.5,lo:55,hi:65,wa:68.2,s:'hi',t:'Above WA avg'},
+    {k:'Food & supplies',v:29.2,lo:28,hi:35,wa:28.8,s:'ok',t:'In range'},
+    {k:'Labor',v:47.3,lo:30,hi:35,wa:39.4,s:'hi',t:'Well above'},
+    {k:'Net margin',v:-6.2,lo:3,hi:8,wa:1.5,s:'hi',t:'Loss'}
+  ]},
+  agenda:[
+    {group:'We need from you',items:[
+      {id:'lc-bs',t:'Little Crane balance sheet and GL (when books are ready)',d:'Books are being finished now. Once ready, this shows the Tracks due-to/due-from, loans and the mortgage. The $2,737.17 monthly payment doesn’t touch Little Crane’s P&L.'},
+      {id:'lc-dor',p:1,t:'DOR returns and the May payment',d:'$102.8K paid to the Department of Revenue this year, including $57.8K in May. Need the returns to split sales tax from B&O.'},
+      {id:'lc-labor',p:1,t:'Labor at 47% of sales',d:'Wages and payroll taxes are $371.1K so far this year. Review schedules and staffing by daypart.'}
+    ]},
+    {group:'Quick questions',items:[
+      {id:'lc-uncat',t:'Uncategorized items, $3,779.49',d:'Checks 5715 ($500) and 6109 ($403.49), a $900 cash withdrawal, and a $10 transfer. What were they for?'},
+      {id:'lc-usbank',t:'U.S. Bank payments, $1,966',d:'Two Oct 19 payments ($550 and $1,416) are coded as expense. Are these credit card payments?'},
+      {id:'lc-interest',t:'Credit card interest, $8,946',d:'Interest is building on Amex, Chase and others. Which cards carry balances?'},
+      {id:'lc-tracksclass',t:'$95.85 grocery classed The Tracks',d:'October 16, in Little Crane’s books. Should Tracks reimburse it?'}
+    ]},
+    {group:'MG to do',items:[
+      {id:'lc-taxprep',t:'Recode $1,255 tax prep',d:'Toledo Tax & Accounting is coded to Income Tax; move it to professional fees.'},
+      {id:'lc-classes',t:'Finish class tracking',d:'Only about 300 of 5,800 transactions carry a class. Class the rest so the cafe and storage split cleanly.'},
+      {id:'lc-ama',t:'Clear Ask My Accountant, $142.04',d:'Opening balance entry from July.'}
+    ]}
+  ],
+  detail:[
+    {title:'Monthly sales',type:'bars',months:["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct"],values:[65741, 69412, 85192, 78884, 89088, 86676, 81373, 79994, 78424, 69586],note:'Little Crane deposits not classed Daley Storage, cash basis.'},
+    {title:'Profit & loss, Jan – Oct 2026',type:'table',head:['Account','Amount','% of sales'],rows:[["s", "Sales", "$784,368.66", "100.0%"], ["", "Food & groceries", "189,755.74", "24.2%"], ["", "Supplies (COGS)", "39,036.48", "5.0%"], ["s", "Gross profit", "$555,576.44", "70.8%"], ["", "Wages, payroll taxes & fees", "371,066.22", "47.3%"], ["", "B&O tax (DOR payments)", "102,834.24", "13.1%"], ["", "Utilities", "33,789.99", "4.3%"], ["", "Insurance", "22,624.55", "2.9%"], ["", "Merchant fees & bank charges", "21,620.47", "2.8%"], ["", "Repairs & supplies", "19,129.58", "2.4%"], ["", "Interest", "8,946.29", "1.1%"], ["", "Equipment lease", "7,574.43", "1.0%"], ["", "Other operating expenses", "16,847.91", "2.1%"], ["t", "Net income (cash basis)", "-$48,857.24", "-6.2%"]]}
+  ]
+};
+
+/* ===== CONFIG_DS: Daley Storage, this week ===== */
+const CONFIG_DS={
+  period:'Financial review · Jan 1 – Oct 31, 2026 · From Little Crane P&L detail, Daley Storage class (cash basis)',
+  summary:'Daley Storage brought in $59.0K this year and kept $33.0K after its mortgage and insurance. Revenue nearly doubled in September and October to about $9.7K a month. The full mortgage payment is booked as expense, and shared costs aren’t split out yet, so true profit will differ.',
+  kpis:[
+    {k:'Rental income',v:'$59.0K',n:'Jan – Oct · $9.7K/mo in Sep–Oct'},
+    {k:'Net income',v:'$33.0K',n:'55.9% of income (cash basis)'},
+    {k:'Mortgage payments',v:'$17.0K',n:'$1,709.36/mo to Shellpoint',flag:true},
+    {k:'History',v:'10 mo',n:'Class tracking began Jan 2026',flag:true}
+  ],
+  agenda:[
+    {group:'We need from you',items:[
+      {id:'ds-mortgage',t:'Shellpoint mortgage statement (when loan info is ready)',d:'The full $1,709.36 payment is booked as expense. The statement will let us split principal from interest.'},
+      {id:'ds-shared',p:1,t:'Which shared costs belong to storage',d:'Utilities, property tax and some insurance sit with the cafe. How should they be split?'}
+    ]},
+    {group:'Quick questions',items:[
+      {id:'ds-jump',t:'September–October revenue jump',d:'Income went from about $4.9K to $9.7K a month. Rate increase, new units, or prepayments?'},
+      {id:'ds-harlow',t:'Card payments through Harlow',d:'Harlow deposits are split between storage and the cafe. Confirm the split is right.'},
+      {id:'ds-before',t:'Storage activity before 2026',d:'Nothing is classed Daley Storage before January. Did it operate earlier under the cafe?'}
+    ]},
+    {group:'MG to do',items:[
+      {id:'ds-reclass',t:'Reclass mortgage principal',d:'Once the statement arrives, move principal to the loan balance and keep interest as expense.'}
+    ]}
+  ],
+  detail:[
+    {title:'Monthly rental income',type:'bars',months:["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct"],values:[4697, 4211, 6309, 5318, 4799, 4132, 4498, 5737, 9851, 9496],note:'Daley Storage class plus tenant ACH payments, cash basis.'},
+    {title:'Profit & loss, Jan – Oct 2026',type:'table',head:['Account','Amount','% of income'],rows:[["s", "Rental income", "$59,047.03", "100.0%"], ["", "Mortgage / Rent", "16,979.49", "28.8%"], ["", "Insurance", "7,779.98", "13.2%"], ["", "Repairs & Maintenance", "634.98", "1.1%"], ["", "Accounting", "350.00", "0.6%"], ["", "Bank Charges", "150.00", "0.3%"], ["", "Merchant Fees", "122.28", "0.2%"], ["t", "Net income (cash basis)", "$33,030.30", "55.9%"]]}
+  ]
+};
+
+/* ===== BUDGET: 24 months of P&L per company. Little Crane and Daley Storage fill in when their P&Ls arrive. ===== */
+const BUDGET={
+  window:'Nov 2024 – Oct 2026',
+  forecastLabels:['Nov 2026','Dec 2026','Jan 2027','Feb 2027','Mar 2027','Apr 2027','May 2027','Jun 2027','Jul 2027','Aug 2027','Sep 2027','Oct 2027'],
+  companies:[
+    {id:"tracks",name:"The Tracks Bar & Grill",data:{"id": "tracks", "name": "The Tracks Bar & Grill", "source": "QuickBooks P&L, Nov 2024 \u2013 Oct 2026", "months": ["Nov 2024", "Dec 2024", "Jan 2025", "Feb 2025", "Mar 2025", "Apr 2025", "May 2025", "Jun 2025", "Jul 2025", "Aug 2025", "Sep 2025", "Oct 2025", "Nov 2025", "Dec 2025", "Jan 2026", "Feb 2026", "Mar 2026", "Apr 2026", "May 2026", "Jun 2026", "Jul 2026", "Aug 2026", "Sep 2026", "Oct 2026"], "income": [33715.67, 31686.9, 37578.56, 27310.99, 36401.83, 43840.76, 40232.9, 41296.65, 47841.08, 42039.57, 41202.47, 37848.81, 33033.54, 35210.7, 34436.42, 28711.07, 32900.9, 39412.66, 40540.41, 48290.37, 44329.6, 43236.14, 39702.03, 35040.01], "cogs": [19703.84, 9916.32, 13655.4, 11294.04, 13190.21, 19576.58, 17461.37, 17781.89, 20945.87, 17013.59, 18008.56, 14704.58, 16253.33, 15002.73, 11618.9, 10223.92, 12754.48, 15169.49, 16877.96, 21393.84, 16707.31, 16566.59, 18861.12, 12510.58], "expenses": [19050.32, 15424.26, 16354.08, 16095.11, 17328.76, 25122.97, 23927.66, 22067.2, 26420.18, 19983.09, 20244.42, 27983.51, 16121.19, 18256.99, 17613.56, 18886.44, 16052.45, 24397.52, 19639.6, 20724.74, 25102.11, 21368.39, 22322.53, 19164.2], "accounts": [{"cat": "rev", "name": "4000 Sales", "y1": 460996.19, "y2": 454843.85}, {"cat": "cogs", "name": "5002 Groceries", "y1": 143810.92, "y2": 130362.67}, {"cat": "cogs", "name": "5001 Beverages, Liquor", "y1": 49480.94, "y2": 52436.78}, {"cat": "cogs", "name": "5000 COGS (not coded to a sub-account)", "y1": -39.61, "y2": 1140.8}, {"cat": "payroll", "name": "6410 Wages", "y1": 148027.53, "y2": 151485.36}, {"cat": "payroll", "name": "6405 Payroll Taxes", "y1": 16379.84, "y2": 14520.36}, {"cat": "payroll", "name": "6401 Payroll Processing Fees", "y1": 0, "y2": 1449.92}, {"cat": "insurance", "name": "6030 Insurance", "y1": 13924.4, "y2": 18315.87}, {"cat": "utilities", "name": "6091 Electric", "y1": 7235.02, "y2": 7071.8}, {"cat": "utilities", "name": "6092 Water & Sewer", "y1": 1373.89, "y2": 1840.96}, {"cat": "utilities", "name": "6093 Garbage", "y1": 2442.18, "y2": 2147.49}, {"cat": "utilities", "name": "6094 Internet", "y1": 350.4, "y2": 688.5}, {"cat": "fees", "name": "6021 Merchant Fees", "y1": 150.92, "y2": 13246.21}, {"cat": "fees", "name": "6020 Bank Charges", "y1": 1599.0, "y2": 2160.0}, {"cat": "repairs", "name": "6060 Repairs & Maintenance", "y1": 11601.6, "y2": 9634.71}, {"cat": "repairs", "name": "6050 Supplies & Materials", "y1": 3342.98, "y2": 632.93}, {"cat": "taxes", "name": "6191 B&O", "y1": 38008.84, "y2": 0}, {"cat": "taxes", "name": "6193 Licenses & Permits", "y1": 1360.0, "y2": 3625.0}, {"cat": "admin", "name": "6240 Entertainment", "y1": 2303.97, "y2": 4604.21}, {"cat": "admin", "name": "6042 Software", "y1": 0, "y2": 1441.74}, {"cat": "admin", "name": "6040 Office/General Administrative", "y1": 2528.36, "y2": 601.1}, {"cat": "admin", "name": "6110 Legal & Professional Fees", "y1": 1329.0, "y2": 850.0}, {"cat": "admin", "name": "6250 Donation", "y1": 0, "y2": 955.44}, {"cat": "admin", "name": "6161 Fuel", "y1": 525.67, "y2": 478.39}, {"cat": "admin", "name": "6010 Advertising/Promotional", "y1": 0, "y2": 195.4}, {"cat": "excluded", "name": "6990 Uncategorized Expense", "y1": 0, "y2": 2844.33}, {"cat": "excluded", "name": "99999.2 Bank to Bank Transfer (inactive)", "y1": -2920.0, "y2": 10.0}, {"cat": "excluded", "name": "Reimbursements (deleted account)", "y1": 437.96, "y2": 0}, {"cat": "excluded", "name": "Income Tax (deleted account)", "y1": 0, "y2": 850.0}]}},
+    {id:"littlecrane",name:"Little Crane Cafe",data:{"id": "littlecrane", "name": "Little Crane Cafe", "source": "Little Crane QuickBooks P&L detail, cash basis, all transactions not classed Daley Storage", "months": ["Nov 2024", "Dec 2024", "Jan 2025", "Feb 2025", "Mar 2025", "Apr 2025", "May 2025", "Jun 2025", "Jul 2025", "Aug 2025", "Sep 2025", "Oct 2025", "Nov 2025", "Dec 2025", "Jan 2026", "Feb 2026", "Mar 2026", "Apr 2026", "May 2026", "Jun 2026", "Jul 2026", "Aug 2026", "Sep 2026", "Oct 2026"], "income": [75057.78, 83824.22, 77440.2, 70533.74, 70451.14, 85607.31, 84620.5, 79417.26, 93500.73, 81604.11, 85113.07, 71331.78, 65554.88, 73999.75, 65740.96, 69412.43, 85192.08, 78883.91, 89087.57, 86675.55, 81373.11, 79993.68, 78423.61, 69585.76], "cogs": [33666.42, 28472.02, 26172.09, 21853.7, 28514.31, 26220.33, 28330.16, 23706.46, 30211.51, 23057.78, 29137.24, 23568.81, 15338.8, 22868.04, 20960.14, 23891.17, 23828.15, 24464.39, 20791.96, 26457.4, 23896.2, 21854.86, 22959.67, 19688.28], "expenses": [46635.65, 54339.26, 48659.09, 46755.25, 49749.84, 63489.87, 53322.18, 54520.7, 61610.64, 53352.65, 51521.77, 58667.17, 41756.96, 47362.48, 55993.6, 42944.57, 49537.45, 59943.0, 107490.57, 59747.02, 64784.65, 59805.64, 57165.61, 47021.57], "accounts": [{"cat": "rev", "name": "4000 Sales", "y1": 958501.84, "y2": 923923.29}, {"cat": "cogs", "name": "5000 Cost of Goods Sold | COGS", "y1": 252089.98, "y2": 198394.2}, {"cat": "cogs", "name": "5050 Food & Groceries", "y1": 0.0, "y2": 11711.69}, {"cat": "cogs", "name": "5060 Supplies & Materials - COGS", "y1": 70820.85, "y2": 56893.17}, {"cat": "admin", "name": "6010 Advertising/Promotional", "y1": 942.66, "y2": 1931.26}, {"cat": "fees", "name": "6020 Bank Charges", "y1": 778.76, "y2": 369.01}, {"cat": "fees", "name": "6021 Merchant Fees", "y1": 925.76, "y2": 21569.46}, {"cat": "insurance", "name": "6030 Insurance", "y1": 21232.11, "y2": 25338.79}, {"cat": "admin", "name": "6040 Office/General Expenses", "y1": 5583.47, "y2": 9598.0}, {"cat": "repairs", "name": "6050 Supplies & Materials", "y1": 8513.56, "y2": 9646.01}, {"cat": "repairs", "name": "6060 Repairs & Maintenance", "y1": 12982.52, "y2": 12796.09}, {"cat": "utilities", "name": "6090 Utilities", "y1": 18988.07, "y2": 18984.52}, {"cat": "utilities", "name": "6091 Electric", "y1": 9064.71, "y2": 2453.3}, {"cat": "utilities", "name": "6092 Telephone and Internet", "y1": 4350.92, "y2": 2988.89}, {"cat": "utilities", "name": "6093 Garbage", "y1": 6354.27, "y2": 6881.06}, {"cat": "utilities", "name": "6094 Water", "y1": 4824.41, "y2": 8210.3}, {"cat": "utilities", "name": "6095 TV/Cable/Streaming/Music", "y1": 301.14, "y2": 257.47}, {"cat": "admin", "name": "6111 Accounting", "y1": 1949.5, "y2": 0.0}, {"cat": "occupancy", "name": "6150 Equipment Lease", "y1": 7094.55, "y2": 8998.45}, {"cat": "admin", "name": "6161 Fuel/ Gas", "y1": 635.72, "y2": 893.78}, {"cat": "admin", "name": "6170 Shipping/Postage", "y1": 81.5, "y2": 78.0}, {"cat": "taxes", "name": "6191 B & O Tax", "y1": 76886.13, "y2": 102834.24}, {"cat": "taxes", "name": "6192 Property Tax", "y1": 2936.7, "y2": 326.49}, {"cat": "taxes", "name": "6193 Licenses & Permits", "y1": 657.5, "y2": 640.0}, {"cat": "interest", "name": "6280 Interest Expense", "y1": 9991.35, "y2": 10795.59}, {"cat": "payroll", "name": "6400 Payroll Expenses", "y1": 7188.64, "y2": 779.02}, {"cat": "payroll", "name": "6405 Payroll Taxes", "y1": 17177.68, "y2": 2170.45}, {"cat": "payroll", "name": "6410 Wages", "y1": 392027.59, "y2": 391473.54}, {"cat": "excluded", "name": "6990 Uncategorized Expense", "y1": 0.0, "y2": 3779.49}, {"cat": "excluded", "name": "8000 Ask My Accountant", "y1": 0.0, "y2": 142.04}, {"cat": "excluded", "name": "8040 Refund", "y1": 185.02, "y2": 0.0}, {"cat": "excluded", "name": "999.2 {ask} Income Tax", "y1": 0.0, "y2": 2505.0}, {"cat": "payroll", "name": "Taxes", "y1": 30969.83, "y2": 47112.87}]}},
+    {id:"daley",name:"Daley Storage",data:{"id": "daley", "name": "Daley Storage", "source": "Little Crane QuickBooks P&L detail, cash basis, Daley Storage class and tenant payments", "months": ["Nov 2024", "Dec 2024", "Jan 2025", "Feb 2025", "Mar 2025", "Apr 2025", "May 2025", "Jun 2025", "Jul 2025", "Aug 2025", "Sep 2025", "Oct 2025", "Nov 2025", "Dec 2025", "Jan 2026", "Feb 2026", "Mar 2026", "Apr 2026", "May 2026", "Jun 2026", "Jul 2026", "Aug 2026", "Sep 2026", "Oct 2026"], "income": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4696.72, 4211.17, 6308.68, 5318.18, 4798.7, 4131.97, 4497.55, 5737.22, 9851.23, 9495.61], "cogs": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "expenses": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2869.08, 2493.69, 2461.06, 2573.03, 2440.13, 3068.8, 2672.26, 2431.02, 2431.9, 2575.76], "accounts": [{"cat": "rev", "name": "4000 Sales", "y1": 0.0, "y2": 59047.03}, {"cat": "fees", "name": "6020 Bank Charges", "y1": 0.0, "y2": 150.0}, {"cat": "fees", "name": "6021 Merchant Fees", "y1": 0.0, "y2": 122.28}, {"cat": "insurance", "name": "6030 Insurance", "y1": 0.0, "y2": 7779.98}, {"cat": "repairs", "name": "6060 Repairs & Maintenance", "y1": 0.0, "y2": 634.98}, {"cat": "occupancy", "name": "6070 Mortgage / Rent", "y1": 0.0, "y2": 16979.49}, {"cat": "admin", "name": "6111 Accounting", "y1": 0.0, "y2": 350.0}], "activeFrom": 14, "activeMonths": 10, "method": "runrate", "runrate": 6418.71}}
+  ],
+  notes:{
+    tracks:[
+      'B&O tax shows $0 in the most recent 12 months because DOR payments were booked to Sales Tax Payable instead of expense. The tax line is understated until the sales tax data comes in.',
+      'Merchant fees were only grossed up starting this year, so the prior 12 months look artificially low. The budget uses the most recent year.',
+      'Not budgeted: uncategorized expenses, clean-up accounts and the one-time prior-year correction.'
+    ],
+    littlecrane:[
+      'From Little Crane’s P&L detail on a cash basis (Tracks is accrual). Everything not classed Daley Storage is treated as the cafe.',
+      'Employer payroll taxes post to a “Taxes” account in Little Crane’s books; they are grouped with payroll here.',
+      'One $95.85 grocery charge in October is classed “The Tracks” in Little Crane’s books. It is left in the cafe.',
+      'The cafe lost $43.7K over the 24 months, so the budget shows a loss unless costs or prices change.'
+    ],
+    daley:[
+      'Daley Storage was first split out by class in January 2026, so it has 10 months of history, not 24.',
+      'Revenue uses the last 6 months’ average ($6,419/month). September and October ran near $9,500, so this may be conservative.',
+      'Expenses are only what is classed Daley Storage (mortgage, insurance, fees), annualized from 10 months. Shared costs such as utilities sit in the cafe.'
+    ]
+  }
+};
+
+const CATS=[
+  {id:'rev',name:'Revenue',kind:'rev'},
+  {id:'cogs',name:'Food & liquor (COGS)',kind:'pct'},
+  {id:'payroll',name:'Payroll',kind:'pct'},
+  {id:'insurance',name:'Insurance',kind:'flat'},
+  {id:'utilities',name:'Utilities',kind:'flat'},
+  {id:'fees',name:'Bank & merchant fees',kind:'flat'},
+  {id:'repairs',name:'Repairs & supplies',kind:'flat'},
+  {id:'taxes',name:'Taxes & licenses',kind:'flat'},
+  {id:'occupancy',name:'Rent, mortgage & leases',kind:'flat'},
+  {id:'interest',name:'Interest',kind:'flat'},
+  {id:'admin',name:'Admin & other',kind:'flat'},
+  {id:'excluded',name:'Not budgeted',kind:'zero'}
+];
+
+(function(){
+  const $=id=>document.getElementById(id);
+  const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const money=v=>(v<0?'(':'')+'$'+Math.abs(Math.round(v)).toLocaleString('en-US')+(v<0?')':'');
+  const kfmt=v=>(v<0?'-':'')+'$'+(Math.abs(v)>=1e6?(Math.abs(v)/1e6).toFixed(2)+'M':(Math.abs(v)/1000).toFixed(1)+'K');
+  const NS='http://www.w3.org/2000/svg';
+
+  /* ---------- Review renderer (both meeting tabs, one panel per business) ---------- */
+  const BIZ=[{id:'tracks',name:'The Tracks Bar & Grill',short:'Tracks'},{id:'littlecrane',name:'Little Crane Cafe',short:'cafe'},{id:'daley',name:'Daley Storage',short:'storage'}];
+  const REVIEWS={cur:{tracks:CONFIG,littlecrane:CONFIG_LC,daley:CONFIG_DS},prev:{tracks:CONFIG_PREV,littlecrane:null,daley:null}};
+  let biz='tracks';
+  function renderReview(C, root, opts){
+    const P=opts.prefix;
+    root.innerHTML=`
+      ${C.banner?`<div class="archive">${esc(C.banner)}</div>`:''}
+      <section><h2>Snapshot</h2><p class="summary">${esc(C.summary)}</p>
+        <div class="kpis">${C.kpis.map(x=>`<div class="kpi${x.flag?' flagged':''}"><span class="k">${esc(x.k)}</span><span class="v num">${esc(x.v)}</span><span class="n">${esc(x.n)}</span></div>`).join('')}</div></section>
+      ${C.bench?`<section><h2>Vs. industry benchmarks</h2><div class="panel"><div class="bench">${benchRows(C.bench)}</div><p class="legend">${esc(C.bench.note)}</p></div></section>`:''}
+      <section id="${P}notes"><div class="ahead"><h2>Agenda &amp; notes</h2><div class="tally" id="${P}tally"></div></div>
+        <div class="panel"><div>${C.agenda.map(g=>`<div class="group"><h3>${esc(g.group)}</h3>${g.items.map(i=>agendaRow(i,P,opts.editable)).join('')}</div>`).join('')}</div>
+        ${opts.editable?`<div class="foot"><span class="savestate" id="${P}saveState" aria-live="polite">Loading saved notes…</span><button type="button" class="btn" id="${P}copyNotes">Copy notes summary</button></div>`:''}</div></section>
+      <section><h2>Supporting detail</h2><div>${C.detail.map((d,i)=>detailBlock(d,P,i)).join('')}</div></section>`;
+    C.detail.forEach((d,i)=>{ if(d.type==='bars') drawBars($(P+'bars'+i),d); });
+  }
+  function benchRows(B){
+    const pct=v=>(Math.max(0,Math.min(B.max,v))/B.max*100)+'%';
+    return B.rows.map(r=>`<div class="brow"><b>${esc(r.k)}</b>
+      <div class="track" role="img" aria-label="${esc(r.k)}: ${r.v}% vs typical ${r.lo} to ${r.hi}%"><span class="rail"></span><span class="bandr" style="left:${pct(r.lo)};width:calc(${pct(r.hi)} - ${pct(r.lo)})"></span>${r.wa!=null?`<span class="wa" style="left:${pct(r.wa)}"></span>`:''}<span class="mk" style="left:${pct(r.v)}"></span></div>
+      <div class="bval"><strong>${r.v}%</strong><span class="muted">US ${r.lo}–${r.hi}%${r.wa!=null?` · WA ${r.wa}%`:''}</span><span class="chip c-${r.s}">${esc(r.t)}</span></div></div>`).join('');
+  }
+  const LABEL={open:'Open',discussed:'Discussed',waiting:'Waiting on client',resolved:'Resolved'};
+  function agendaRow(i,P,editable){
+    if(!editable) return `<div class="row ro${i.p?' priority':''}"><div class="what"><b>${esc(i.t)}</b><span>${esc(i.d)}</span></div></div>`;
+    const what=`<div class="what"><label class="chk" for="${P}ck-${i.id}"><input type="checkbox" id="${P}ck-${i.id}"><b>${esc(i.t)}</b></label><span>${esc(i.d)}</span><span class="dnote" id="${P}dn-${i.id}"></span></div>`;
+    return `<div class="row${i.p?' priority':''}" id="${P}row-${i.id}">${what}<div class="edit"><div class="ctl"><label class="note" for="${P}st-${i.id}">Status</label>
+      <select id="${P}st-${i.id}">${Object.keys(LABEL).map(k=>`<option value="${k}">${LABEL[k]}</option>`).join('')}</select>
+      <span class="stamp" id="${P}stamp-${i.id}"></span></div>
+      <textarea id="${P}nt-${i.id}" aria-label="Notes: ${esc(i.t)}" placeholder="Notes…"></textarea></div></div>`;
+  }
+  function detailBlock(d,P,i){
+    let body='';
+    if(d.type==='table'){
+      body=`<div class="scroll"><table><thead><tr>${d.head.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${
+        d.rows.map(r=>`<tr class="${r[0]==='s'?'sub':r[0]==='t'?'total':''}">${r.slice(1).map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+    } else body=`<div class="scroll"><svg class="chart" id="${P}bars${i}" viewBox="0 0 900 240" role="img" aria-label="${esc(d.title)}"></svg></div>`;
+    return `<details><summary>${esc(d.title)}</summary><div>${body}${d.note?`<p class="note">${esc(d.note)}</p>`:''}</div></details>`;
+  }
+  function drawBars(svg,d){
+    const W=900,H=240,L=50,R=10,T=22,Bm=28, stepV=Math.max(...d.values,1)>40000?10000:2000;
+    const max=Math.ceil(Math.max(...d.values,1)/stepV)*stepV, y=v=>T+(H-T-Bm)*(1-v/max), step=(W-L-R)/d.values.length, bw=step*.58;
+    const el=(t,a,txt)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;svg.appendChild(e);};
+    for(let t=0;t<=max;t+=stepV){el('line',{x1:L,x2:W-R,y1:y(t),y2:y(t),stroke:'var(--line)'});el('text',{x:L-8,y:y(t)+4,'text-anchor':'end','font-size':12,fill:'var(--muted)'},'$'+t/1000+'K');}
+    d.values.forEach((v,j)=>{const x=L+j*step+(step-bw)/2;
+      el('rect',{x,y:y(v),width:bw,height:y(0)-y(v),rx:2,fill:'var(--purple)',opacity:/\*$/.test(d.months[j])?.45:1});
+      el('text',{x:x+bw/2,y:y(v)-5,'text-anchor':'middle','font-size':11,'font-weight':600,fill:'var(--ink)'},'$'+(v/1000).toFixed(1)+'K');
+      el('text',{x:x+bw/2,y:H-9,'text-anchor':'middle','font-size':12,fill:'var(--muted)'},d.months[j]);});
+  }
+  function bizBar(tab){
+    return `<div class="panel bctl bizbar"><div><div class="lab">Business</div><div class="seg" role="group" aria-label="Business">${BIZ.map(b=>`<button type="button" data-biz="${b.id}" aria-pressed="${biz===b.id}">${esc(b.name)}</button>`).join('')}</div></div></div>`;
+  }
+  ['cur','prev'].forEach(tab=>{
+    const root=$(tab==='cur'?'view-review':'view-nov-11');
+    const list=tab==='cur'?BIZ:BIZ.filter(b=>b.id==='tracks');
+    root.innerHTML=(tab==='cur'?bizBar(tab):'')+list.map(b=>`<div class="bizview" id="${tab}-${b.id}-view"${tab==='cur'?` data-bizview="${b.id}"`:''}${tab==='cur'&&b.id!==biz?' hidden':''}></div>`).join('');
+    list.forEach(b=>{
+      const C=REVIEWS[tab][b.id], el=$(`${tab}-${b.id}-view`);
+      if(C) renderReview(C,el,{prefix:`${tab}-${b.id}-`,editable:tab==='cur'});
+      else el.innerHTML=`<div class="panel waiting"><h3>${esc(b.name)} wasn’t part of this meeting</h3><p class="muted">The Nov 11 review covered The Tracks only. ${esc(b.name)}’s first review is in the This week tab.</p></div>`;
+    });
+  });
+  function setBiz(id){
+    biz=id;
+    document.querySelectorAll('[data-biz]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.biz===id));
+    document.querySelectorAll('[data-bizview]').forEach(v=>v.hidden=v.dataset.bizview!==id);
+    updateBand();
+  }
+  document.querySelectorAll('[data-biz]').forEach(b=>b.addEventListener('click',()=>setBiz(b.dataset.biz)));
+
+  /* ---------- Notes (This week tab; shared db collection "notes", one doc per item id) ---------- */
+  (function(){
+    const GROUPS=BIZ.map(b=>({b,P:`cur-${b.id}-`,C:REVIEWS.cur[b.id]})).filter(g=>g.C);
+    const ITEMS=[]; GROUPS.forEach(g=>g.C.agenda.forEach(gr=>gr.items.forEach(i=>ITEMS.push({i,P:g.P,g}))));
+    const byId={}; ITEMS.forEach(x=>byId[x.i.id]=x);
+    const state={}; ITEMS.forEach(x=>state[x.i.id]={status:'open',note:'',updatedAt:null,updatedBy:null});
+    const timers={}, writing={}, queued={}, pending={};
+    let db=null, user=null, myId=null, mode='loading';
+    const setSave=t=>GROUPS.forEach(g=>{const e=$(g.P+'saveState');if(e)e.textContent=t;});
+    const saveText=()=>$(GROUPS[0].P+'saveState').textContent;
+    function paintTally(){GROUPS.forEach(g=>{const c={open:0,discussed:0,waiting:0,resolved:0};ITEMS.filter(x=>x.g===g).forEach(x=>c[state[x.i.id].status]++);
+      $(g.P+'tally').innerHTML=Object.keys(c).filter(k=>c[k]).map(k=>`<span class="st st-${k}">${c[k]} ${LABEL[k]}</span>`).join('');});}
+    async function paintStamps(){
+      const ids=[...new Set(ITEMS.map(x=>state[x.i.id].updatedBy).filter(Boolean))]; let ps={};
+      if(user&&ids.length){try{ps=await user.profiles(ids);}catch(e){}}
+      ITEMS.forEach(x=>{const s=state[x.i.id];let t='';
+        if(s.updatedAt){t=new Date(s.updatedAt).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+          const n=s.updatedBy&&ps[s.updatedBy]&&ps[s.updatedBy].name; if(n)t+=' · '+n;}
+        $(x.P+'stamp-'+x.i.id).textContent=t;});
+    }
+    function paintRow(id){const x=byId[id],P=x.P,s=state[id],done=s.status==='resolved';$(P+'row-'+id).classList.toggle('done',done);$(P+'ck-'+id).checked=done;
+      $(P+'dn-'+id).textContent=done&&s.note.trim()?s.note.trim().split('\n')[0]:'';}
+    function fill(id){const P=byId[id].P,s=state[id],sel=$(P+'st-'+id),ta=$(P+'nt-'+id); if(sel.value!==s.status)sel.value=s.status; if(document.activeElement!==ta&&ta.value!==s.note)ta.value=s.note; paintRow(id);}
+    function save(id,delay){clearTimeout(timers[id]);pending[id]=true;timers[id]=setTimeout(()=>flush(id),delay);}
+    async function flush(id){
+      const s=state[id]; s.updatedAt=new Date().toISOString(); s.updatedBy=myId;
+      if(mode==='local'){try{localStorage.setItem('mg-notes:tracks',JSON.stringify(state));setSave('Saved on this device only');}catch(e){setSave('Notes can’t be saved in this browser');} pending[id]=false; paintStamps(); return;}
+      if(mode!=='db')return;
+      if(writing[id]){queued[id]=true;return;}
+      writing[id]=true; setSave('Saving…');
+      try{await db.collection('notes').doc(id).set({status:s.status,note:s.note,updatedAt:s.updatedAt,updatedBy:myId||null});setSave('All notes saved');}
+      catch(e){ if(e&&e.code==='invalid_argument'){mode='readonly';lockAll();setSave('View-only: notes can’t be changed here.');} else setSave('Couldn’t save. Check your connection.'); }
+      writing[id]=false; if(queued[id]){queued[id]=false;flush(id);} else pending[id]=false;
+      paintStamps();
+    }
+    function lockAll(){document.querySelectorAll('#view-review select,#view-review textarea,#view-review input[type=checkbox]').forEach(e=>e.disabled=true);}
+    ITEMS.forEach(({i,P})=>{
+      $(P+'st-'+i.id).addEventListener('change',e=>{state[i.id].status=e.target.value;paintRow(i.id);paintTally();save(i.id,0);});
+      $(P+'ck-'+i.id).addEventListener('change',e=>{const s=state[i.id];if(e.target.checked){s.prev=s.status;s.status='resolved';}else{s.status=s.prev&&s.prev!=='resolved'?s.prev:'discussed';}
+        $(P+'st-'+i.id).value=s.status;paintRow(i.id);paintTally();save(i.id,0);});
+      $(P+'nt-'+i.id).addEventListener('input',e=>{state[i.id].note=e.target.value;setSave('Unsaved changes…');save(i.id,900);});
+    });
+    paintTally();ITEMS.forEach(x=>paintRow(x.i.id));
+    GROUPS.forEach(g=>$(g.P+'copyNotes').addEventListener('click',async()=>{
+      const lines=[g.b.name+' — meeting notes ('+new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})+')'];
+      g.C.agenda.forEach(gr=>{lines.push('',gr.group.toUpperCase());gr.items.forEach(i=>{const s=state[i.id];lines.push('• '+i.t+' — '+LABEL[s.status]);if(s.note.trim())lines.push('   '+s.note.trim().replace(/\n/g,'\n   '));});});
+      const text=lines.join('\n'), btn=$(g.P+'copyNotes');
+      try{await navigator.clipboard.writeText(text);btn.textContent='Copied';}
+      catch(e){const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();
+        try{document.execCommand('copy');btn.textContent='Copied';}catch(_){btn.textContent='Copy failed';} ta.remove();}
+      setTimeout(()=>btn.textContent='Copy notes summary',2000);
+    }));
+    function useLocal(){mode='local';
+      try{const sv=JSON.parse(localStorage.getItem('mg-notes:tracks')||'null');if(sv)ITEMS.forEach(x=>{if(sv[x.i.id])Object.assign(state[x.i.id],sv[x.i.id]);});}catch(e){}
+      ITEMS.forEach(x=>fill(x.i.id));paintTally();paintStamps();setSave('Shared saving isn’t available here, so notes save on this device only.');}
+    (async()=>{
+      if(!window.claude||!window.claude.use){useLocal();return;}
+      try{[db,user]=await Promise.all([window.claude.use('db'),window.claude.use('user')]);}catch(e){db=null;}
+      if(!db){useLocal();return;}
+      mode='db';
+      if(user){try{myId=await user.id();}catch(e){} try{if(await user.can('data.write')===false){mode='readonly';lockAll();}}catch(e){}}
+      const timer=setTimeout(()=>setSave('Saved notes can’t be reached yet. Edits will save when the connection returns.'),10000);
+      db.collection('notes').onSnapshot(snap=>{
+        if(!snap.metadata.fromCache){clearTimeout(timer); if(/^(Loading|Saved notes can)/.test(saveText())) setSave(mode==='readonly'?'View-only: notes can’t be changed here.':'All notes saved');}
+        snap.docs.forEach(d=>{ if(!state[d.id]||pending[d.id]||writing[d.id])return; const v=d.data()||{};
+          state[d.id]={status:LABEL[v.status]?v.status:'open',note:typeof v.note==='string'?v.note:'',updatedAt:v.updatedAt||null,updatedBy:v.updatedBy||null}; fill(d.id);});
+        paintTally();paintStamps();
+      },()=>{clearTimeout(timer);setSave('Notes stopped syncing. Reload the page to reconnect.');});
+    })();
+  })();
+
+  /* ---------- Budget & forecast ---------- */
+  const B={co:'tracks',growth:0,cogs:null,box:'in',month:null};
+  const GROWTH=[-5,0,3,5];
+
+  function catSum(accts,cat,key){return accts.filter(a=>a.cat===cat).reduce((s,a)=>s+a[key],0);}
+  function computeCompany(c){
+    const d=c.data, A=d.accounts;
+    const revY1=catSum(A,'rev','y1'), revY2=catSum(A,'rev','y2');
+    const hasCogs=catSum(A,'cogs','y2')!==0;
+    const cogsPctCur=hasCogs?catSum(A,'cogs','y2')/revY2:0, payPct=catSum(A,'payroll','y2')/revY2;
+    const cogsPct=!hasCogs?0:(B.cogs==null?cogsPctCur:B.cogs/100);
+    const g=1+B.growth/100, scale=d.method==='runrate'?12/d.activeMonths:1;
+    const rev=BUDGET.forecastLabels.map((_,i)=>d.method==='runrate'?d.runrate*g:(d.income[i]+d.income[i+12])/2*g);
+    const revTot=rev.reduce((a,b)=>a+b,0);
+    const flatCats=CATS.filter(k=>k.kind==='flat').map(k=>k.id);
+    const monthly=rev.map(r=>{const m={rev:r,cogs:r*cogsPct,payroll:r*payPct};flatCats.forEach(k=>m[k]=catSum(A,k,'y2')*scale/12);m.excluded=0;return m;});
+    const budgetFor=a=>{
+      if(a.cat==='rev') return revTot;
+      if(a.cat==='cogs'){const t=catSum(A,'cogs','y2');return t?a.y2/t*revTot*cogsPct:0;}
+      if(a.cat==='payroll'){const t=catSum(A,'payroll','y2');return t?a.y2/t*revTot*payPct:0;}
+      if(a.cat==='excluded') return 0;
+      return a.y2*scale;
+    };
+    const accounts=A.map(a=>Object.assign({},a,{company:c.name,budget:budgetFor(a)}));
+    return {months:d.months,income:d.income,cogsHist:d.cogs,expHist:d.expenses,monthly,accounts,cogsPctCur:hasCogs?cogsPctCur:null,payPct,revY1,revY2};
+  }
+  function compute(){
+    const loaded=BUDGET.companies.filter(c=>c.data);
+    const pick=B.co==='all'?loaded:loaded.filter(c=>c.id===B.co);
+    if(!pick.length) return null;
+    const parts=pick.map(computeCompany);
+    const sumArr=(k)=>parts[0][k].map((_,i)=>parts.reduce((s,p)=>s+p[k][i],0));
+    const monthly=parts[0].monthly.map((_,i)=>{const m={};CATS.forEach(k=>m[k.id]=parts.reduce((s,p)=>s+(p.monthly[i][k.id]||0),0));return m;});
+    return {months:parts[0].months,income:sumArr('income'),cogsHist:sumArr('cogsHist'),expHist:sumArr('expHist'),monthly,
+      accounts:parts.flatMap(p=>p.accounts),multi:pick.length>1,cogsPctCur:parts.length===1?parts[0].cogsPctCur:null,hasCogs:parts.some(p=>p.cogsPctCur!=null),count:pick.length,runrate:pick.some(c=>c.data.method==='runrate')};
+  }
+  const expenseCats=CATS.filter(k=>k.kind!=='rev'&&k.kind!=='zero').map(k=>k.id);
+  const netOf=m=>m.rev-expenseCats.reduce((s,k)=>s+m[k],0);
+
+  function renderBudget(){
+    const root=$('view-budget');
+    const R=compute();
+    const coBtns=[...BUDGET.companies.map(c=>({id:c.id,label:c.name})),{id:'all',label:'All three together'}];
+    const coName=B.co==='all'?'the three businesses together':(BUDGET.companies.find(c=>c.id===B.co)||{}).name;
+    let html=`<section><div class="panel bctl bizbar"><div><div class="lab">Business</div><div class="seg" role="group" aria-label="Business">${coBtns.map(b=>`<button type="button" data-co="${b.id}" aria-pressed="${B.co===b.id}">${esc(b.label)}</button>`).join('')}</div></div></div></section>`;
+    if(!R){ root.innerHTML=html+`<section><div class="panel waiting"><h3>Waiting for numbers</h3><p class="muted">Send this business’s monthly profit & loss and the plan fills in here.</p></div></section>`; wireBudget(); return; }
+    const tot=k=>R.monthly.reduce((s,m)=>s+m[k],0);
+    const last=k=>R.accounts.filter(a=>a.cat===k).reduce((s,a)=>s+a.y2,0);
+    const groups=SIMPLE.map(g=>({...g,f:g.cats.reduce((s,k)=>s+tot(k),0),l:g.cats.reduce((s,k)=>s+last(k),0)})).filter((g,i)=>i===0||g.f||g.l);
+    const inF=groups[0].f, outF=groups.slice(1).reduce((s,g)=>s+g.f,0), left=inF-outF;
+    const inL=groups[0].l, outL=groups.slice(1).reduce((s,g)=>s+g.l,0), leftL=inL-outL;
+    const r=v=>'$'+(Math.abs(v)>=1e6?(Math.abs(v)/1e6).toFixed(2)+' million':Math.round(Math.abs(v)/1000).toLocaleString('en-US')+'K');
+    const diff=left-leftL;
+    html+=`<section><h2>The next 12 months at a glance</h2>
+      <div class="panel headline"><p>From <b>November 2026 to October 2027</b>, we expect ${esc(coName)} to bring in about <b>${r(inF)}</b> and spend about <b>${r(outF)}</b>, ${left>=0?`for a <b class="up">profit of about ${r(left)}</b> (what’s left over)`:`for a <b class="down">loss of about ${r(left)}</b> (costs more than sales)`}.</p>
+      <p class="muted">${Math.abs(diff)<1000?'That’s about the same as the last 12 months.':`That’s about ${r(diff)} ${diff>0?'more':'less'} profit than the last 12 months${B.growth||B.cogs!=null?', because of the “what if” choices below':''}.`}</p></div></section>`;
+    html+=`<section><h2>Where each dollar goes</h2><p class="note">Click a box to see what’s inside it.</p><div class="sboxes">${groups.map((g,i)=>{
+        const cents=i===0?'':`<span class="cents">${Math.round(g.f/inF*100)}¢</span><span class="d">of every sales dollar</span>`;
+        return `<button type="button" class="sbox sb-${g.id}" data-box="${g.id}" aria-pressed="${B.box===g.id&&B.month==null}"><span class="k">${esc(g.name)}</span><span class="v">${kfmt(g.f)}</span>${cents}<span class="d">${esc(g.desc)}</span></button>`;}).join('')}
+        <button type="button" class="sbox sb-left" data-box="left" aria-pressed="${B.box==='left'&&B.month==null}"><span class="k">${left>=0?'Profit':'Loss'}</span><span class="v ${left>=0?'up':'down'}">${kfmt(left)}</span><span class="cents">${Math.round(left/inF*100)}¢</span><span class="d">of every sales dollar</span><span class="d">${left>=0?'What’s left over after all costs':'Costs are more than sales'}</span></button>
+      </div><div class="panel detail" id="bDetail"></div></section>`;
+    const showCogs=R.hasCogs;
+    html+=`<section><h2>What if…</h2><div class="panel whatif">
+      <div><div class="q">What if sales change?</div><div class="seg" role="group" aria-label="Sales change">${GROWTH.map(g=>`<button type="button" data-g="${g}" aria-pressed="${B.growth===g}">${g===0?'Stay the same':(g>0?'Up ':'Down ')+Math.abs(g)+'%'}</button>`).join('')}</div></div>
+      ${showCogs?`<div><div class="q">What if food & supply costs come down?</div><div class="seg" role="group" aria-label="Food and supply cost">${[{v:null,l:'Stay as now'+(R.cogsPctCur!=null?` (${Math.round(R.cogsPctCur*100)}¢ per $1)`:'')},{v:37,l:'37¢ per $1'},{v:35,l:'35¢ per $1'}].map(o=>`<button type="button" data-cogs="${o.v}" aria-pressed="${B.cogs===o.v}">${o.l}</button>`).join('')}</div></div>`:''}
+      <p class="note">Every number on this tab updates when you pick an option.</p></div></section>`;
+    html+=`<section><h2>Sales by month</h2><div class="panel"><div class="legendrow"><span><i style="background:var(--purple)"></i>What actually came in (last 2 years)</span><span><i style="background:var(--fc)"></i>What we expect</span></div>
+      <div class="scroll"><svg class="chart" id="bChart" viewBox="0 0 960 260" role="img" aria-label="Monthly sales, last two years and next twelve months expected"></svg></div><p class="note">Click a light bar, or a month below, to see that month.</p></div></section>`;
+    const showFood=groups.some(g=>g.id==='food'), showStaff=groups.some(g=>g.id==='staff');
+    const mg=R.monthly.map(m=>({in:m.rev,food:m.cogs,staff:m.payroll,other:expenseCats.filter(k=>k!=='cogs'&&k!=='payroll').reduce((s,k)=>s+m[k],0)})).map(x=>({...x,profit:x.in-x.food-x.staff-x.other}));
+    const pl=v=>`<span class="${v<0?'down':'up'}">${money(Math.abs(v))} ${v<0?'loss':'profit'}</span>`;
+    const best=mg.reduce((a,x,i)=>x.profit>mg[a].profit?i:a,0), worst=mg.reduce((a,x,i)=>x.profit<mg[a].profit?i:a,0);
+    html+=`<section><h2>Month by month</h2>
+      <div class="panel"><p class="note" style="margin-bottom:8px">Each bar is one month’s expected sales, split into where the money goes. Click a bar to see that month.</p>
+      <div class="legendrow">${showFood?'<span><i style="background:var(--magenta)"></i>Food & supplies</span>':''}${showStaff?'<span><i style="background:var(--sky)"></i>Staff</span>':''}<span><i style="background:var(--orange)"></i>Everything else</span><span><i style="background:var(--teal)"></i>Profit</span><span><i style="background:var(--neg)"></i>Loss</span></div>
+      <div class="scroll"><svg class="chart" id="bStack" viewBox="0 0 960 300" role="img" aria-label="Expected monthly sales split into food and supplies, staff, everything else and profit"></svg></div>
+      <div class="mcallouts">${Math.round(mg[best].profit)===Math.round(mg[worst].profit)?`<div><span class="k">Every month</span><b>About the same</b><span class="note">Based on a recent monthly average, not seasons</span></div>`:`<div><span class="k">Best month</span><b>${BUDGET.forecastLabels[best]}</b>${pl(mg[best].profit)}</div>
+        <div><span class="k">Toughest month</span><b>${BUDGET.forecastLabels[worst]}</b>${pl(mg[worst].profit)}</div>`}
+        <div><span class="k">Average month</span><b>${money(inF/12)} in</b>${pl(left/12)}</div></div></div>
+      <div class="panel"><div class="scroll"><table class="simple"><thead><tr><th>Month</th><th>Coming in</th>${showFood?'<th>Food & supplies</th>':''}${showStaff?'<th>Staff</th>':''}<th>Everything else</th><th>Profit<span class="thsub">what’s left over</span></th><th>Profit per $1</th></tr></thead><tbody>${
+      mg.map((x,i)=>`<tr class="click${B.month===i?' sel':''}" tabindex="0" data-month="${i}"><td>${BUDGET.forecastLabels[i]}</td><td>${money(x.in)}</td>${showFood?`<td>${money(x.food)}</td>`:''}${showStaff?`<td>${money(x.staff)}</td>`:''}<td>${money(x.other)}</td><td class="${x.profit<0?'down':'up'}">${money(x.profit)}</td><td class="${x.profit<0?'down':''}">${Math.round(x.profit/x.in*100)}¢</td></tr>`).join('')
+      }<tr class="total"><td>Next 12 months</td><td>${money(inF)}</td>${showFood?`<td>${money(tot('cogs'))}</td>`:''}${showStaff?`<td>${money(tot('payroll'))}</td>`:''}<td>${money(outF-tot('cogs')-tot('payroll'))}</td><td class="${left<0?'down':''}">${money(left)}</td><td>${Math.round(left/inF*100)}¢</td></tr></tbody></table></div></div></section>`;
+    const notes=B.co==='all'?BUDGET.companies.filter(c=>c.data).flatMap(c=>(BUDGET.notes[c.id]||[]).map(n=>c.name+': '+n)):(BUDGET.notes[B.co]||[]);
+    html+=`<section><div class="panel how"><h3>How we built this</h3><ul>
+        <li>We looked at the last two years of sales, month by month, so busy and slow seasons repeat.</li>
+        <li>Food, supplies and staff go up and down with sales. Everything else stays about where it was this past year.</li>
+        <li>One-time and clean-up items are left out.</li></ul></div></section>`;
+    root.innerHTML=html;
+    drawForecast(R);
+    drawStack(R);
+    renderDetail(R,groups,inF);
+    wireBudget();
+  }
+
+  const FRIENDLY={rev:'Sales',cogs:'Food & supplies',payroll:'Staff',insurance:'Insurance',utilities:'Utilities (power, water, garbage, internet)',fees:'Card processing & bank fees',repairs:'Repairs & small supplies',taxes:'Taxes & licenses',occupancy:'Rent, mortgage & equipment leases',interest:'Interest on loans & cards',admin:'Office, marketing & other'};
+  const SIMPLE=[
+    {id:'in',name:'Money coming in',desc:'Sales',cats:['rev']},
+    {id:'food',name:'Food & supplies',desc:'What goes on the plate and in the glass',cats:['cogs']},
+    {id:'staff',name:'Staff',desc:'Wages and payroll taxes',cats:['payroll']},
+    {id:'other',name:'Everything else',desc:'Utilities, insurance, fees, repairs and more',cats:['insurance','utilities','fees','repairs','taxes','occupancy','interest','admin']}
+  ];
+  const clean=n=>n.replace(/^[\d.]+\s+/,'').replace(/\{[^}]*\}\s*/g,'').replace(/\s*\|\s*COGS/,'');
+
+  function renderDetail(R,groups,inF){
+    const box=$('bDetail'); if(!box) return;
+    if(B.month!=null){
+      const m=R.monthly[B.month], i=B.month;
+      const g=SIMPLE.map(x=>({n:x.name,v:x.cats.reduce((s,k)=>s+m[k],0)}));
+      const out=g.slice(1).reduce((s,x)=>s+x.v,0);
+      box.innerHTML=`<h3>${BUDGET.forecastLabels[i]}</h3>
+        <div class="mlist">${g.map((x,j)=>`<div><span>${j?'− ':''}${esc(x.n)}</span><b>${money(x.v)}</b></div>`).join('')}<div class="tot"><span>${m.rev-out>=0?'Profit (what’s left over)':'Loss'}</span><b class="${m.rev-out<0?'down':'up'}">${money(m.rev-out)}</b></div></div>
+        <p class="note">For comparison, ${R.months[i+12]} brought in ${money(R.income[i+12])} and ${R.months[i]} brought in ${money(R.income[i])}.</p>`;
+      return;
+    }
+    if(B.box==='left'){
+      box.innerHTML=`<h3>How we get to profit</h3><div class="mlist">${groups.map((x,j)=>`<div><span>${j?'− ':''}${esc(x.name)}</span><b>${money(x.f)}</b></div>`).join('')}
+        <div class="tot"><span>Profit (what’s left over)</span><b>${money(groups[0].f-groups.slice(1).reduce((s,x)=>s+x.f,0))}</b></div></div>`;
+      return;
+    }
+    const g=SIMPLE.find(x=>x.id===B.box)||SIMPLE[0];
+    const rows=g.cats.map(k=>{const f=R.monthly.reduce((s,m)=>s+m[k],0),l=R.accounts.filter(a=>a.cat===k).reduce((s,a)=>s+a.y2,0);return {k,f,l};}).filter(x=>x.f||x.l);
+    const accts=R.accounts.filter(a=>g.cats.includes(a.cat)&&(a.y2||a.budget));
+    box.innerHTML=`<h3>${esc(g.name)}</h3>
+      <div class="scroll"><table class="simple"><thead><tr><th>What it is</th><th>Last 12 months</th><th>Next 12 months</th><th>Per month</th></tr></thead><tbody>${
+        rows.map(x=>`<tr><td>${esc(FRIENDLY[x.k])}</td><td>${money(x.l)}</td><td>${money(x.f)}</td><td>${money(x.f/12)}</td></tr>`).join('')}</tbody></table></div>
+      <details class="inner"><summary>Show the QuickBooks accounts</summary><div class="scroll"><table><thead><tr><th>Account</th><th>Nov 24 – Oct 25</th><th>Nov 25 – Oct 26</th><th>Next 12 months</th></tr></thead><tbody>${
+        accts.map(a=>`<tr><td>${R.multi?`<span class="muted">${esc(a.company)} · </span>`:''}${esc(clean(a.name))}</td><td>${money(a.y1)}</td><td>${money(a.y2)}</td><td>${money(a.budget)}</td></tr>`).join('')}</tbody></table></div></details>`;
+  }
+
+  function drawStack(R){
+    const svg=$('bStack'); if(!svg) return;
+    const mg=R.monthly.map(m=>{const other=expenseCats.filter(k=>k!=='cogs'&&k!=='payroll').reduce((s,k)=>s+m[k],0);return {in:m.rev,segs:[['food',m.cogs,'var(--magenta)'],['staff',m.payroll,'var(--sky)'],['other',other,'var(--orange)']],profit:m.rev-m.cogs-m.payroll-other};});
+    const W=960,H=300,L=60,Rr=10,T=16,Bm=34;
+    const top=Math.max(...mg.map(x=>Math.max(x.in,x.in-x.profit))), bot=Math.min(0,...mg.map(x=>x.profit));
+    const stepV=top>200000?50000:top>40000?10000:2000;
+    const max=Math.ceil(top/stepV)*stepV, min=bot<0?-Math.ceil(-bot/stepV)*stepV:0;
+    const y=v=>T+(H-T-Bm)*(max-v)/(max-min), step=(W-L-Rr)/12, bw=step*.62;
+    const el=(t,a,txt,par)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;(par||svg).appendChild(e);return e;};
+    for(let t=min;t<=max;t+=stepV){el('line',{x1:L,x2:W-Rr,y1:y(t),y2:y(t),stroke:t===0?'var(--muted)':'var(--line)'});el('text',{x:L-8,y:y(t)+4,'text-anchor':'end','font-size':12,fill:'var(--muted)'},(t<0?'-$':'$')+Math.abs(t)/1000+'K');}
+    mg.forEach((x,i)=>{
+      const gx=L+i*step+(step-bw)/2, g=el('g',{});
+      g.style.cursor='pointer';
+      let base=0;
+      x.segs.forEach(([k,v,c])=>{ if(v<=0) return; el('rect',{x:gx,y:y(base+v),width:bw,height:y(base)-y(base+v),fill:c},null,g); base+=v; });
+      if(x.profit>0) el('rect',{x:gx,y:y(base+x.profit),width:bw,height:y(base)-y(base+x.profit),fill:'var(--teal)'},null,g);
+      else if(x.profit<0) el('rect',{x:gx,y:y(0),width:bw,height:y(x.profit)-y(0),fill:'var(--neg)'},null,g);
+      if(B.month===i) el('rect',{x:gx-2,y:y(Math.max(x.in,base))-2,width:bw+4,height:y(Math.min(0,x.profit))-y(Math.max(x.in,base))+4,fill:'none',stroke:'var(--purple-ink)','stroke-width':2,rx:3},null,g);
+      el('title',{},`${BUDGET.forecastLabels[i]}: ${money(x.in)} in, ${money(x.profit)} ${x.profit<0?'loss':'profit'}`,g);
+      el('text',{x:gx+bw/2,y:x.profit<0?y(x.profit)+13:y(Math.max(x.in,base))-5,'text-anchor':'middle','font-size':11,'font-weight':700,fill:x.profit<0?'var(--neg)':'var(--teal-ink)'},(x.profit<0?'-':'+')+'$'+(Math.abs(x.profit)/1000).toFixed(1)+'K',g);
+      el('text',{x:gx+bw/2,y:H-12,'text-anchor':'middle','font-size':12,fill:'var(--muted)'},BUDGET.forecastLabels[i].replace(/ 20(\d\d)$/," ’$1"),g);
+      g.addEventListener('click',()=>{B.month=i;renderBudget();const d=$('bDetail');if(d)d.scrollIntoView({block:'nearest',behavior:'smooth'});});
+    });
+  }
+
+  function drawForecast(R){
+    const svg=$('bChart'); if(!svg) return;
+    const vals=[...R.income,...R.monthly.map(m=>m.rev)], labels=[...R.months,...BUDGET.forecastLabels];
+    const W=960,H=260,L=56,Rr=10,T=16,Bm=40;
+    const stepV=Math.max(...vals)>200000?50000:Math.max(...vals)>40000?10000:2000;
+    const max=Math.ceil(Math.max(...vals)/stepV)*stepV, y=v=>T+(H-T-Bm)*(1-v/max), step=(W-L-Rr)/vals.length, bw=step*.7;
+    const el=(t,a,txt,par)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;(par||svg).appendChild(e);return e;};
+    for(let t=0;t<=max;t+=stepV){el('line',{x1:L,x2:W-Rr,y1:y(t),y2:y(t),stroke:'var(--line)'});el('text',{x:L-8,y:y(t)+4,'text-anchor':'end','font-size':12,fill:'var(--muted)'},'$'+t/1000+'K');}
+    el('line',{x1:L+24*step,x2:L+24*step,y1:T,y2:H-Bm+4,stroke:'var(--muted)','stroke-dasharray':'4 4'});
+    el('text',{x:L+24*step+6,y:T+10,'font-size':11,fill:'var(--muted)'},'Expected →');
+    vals.forEach((v,j)=>{const x=L+j*step+(step-bw)/2, fc=j>=24;
+      const r=el('rect',{x,y:y(Math.max(0,v)),width:bw,height:Math.abs(y(0)-y(Math.max(0,v))),rx:2,fill:fc?'var(--fc)':'var(--purple)'});
+      el('title',{},labels[j]+': '+money(v),r);
+      if(fc){r.style.cursor='pointer'; if(B.month===j-24){r.setAttribute('stroke','var(--orange)');r.setAttribute('stroke-width','2');}
+        r.addEventListener('click',()=>{B.month=j-24;renderBudget();const d=$('bDetail');if(d)d.scrollIntoView({block:'nearest',behavior:'smooth'});});}
+      if(j%3===0) el('text',{x:x+bw/2,y:H-Bm+18,'text-anchor':'middle','font-size':11,fill:'var(--muted)'},labels[j].replace(/ 20(\d\d)$/," ’$1"));
+    });
+  }
+
+  function wireBudget(){
+    const root=$('view-budget');
+    root.querySelectorAll('[data-co]').forEach(b=>b.addEventListener('click',()=>{B.co=b.dataset.co;B.month=null;renderBudget();}));
+    root.querySelectorAll('[data-g]').forEach(b=>b.addEventListener('click',()=>{B.growth=+b.dataset.g;renderBudget();}));
+    root.querySelectorAll('[data-cogs]').forEach(b=>b.addEventListener('click',()=>{B.cogs=b.dataset.cogs==='null'?null:+b.dataset.cogs;renderBudget();}));
+    root.querySelectorAll('[data-box]').forEach(b=>b.addEventListener('click',()=>{B.box=b.dataset.box;B.month=null;renderBudget();const d=$('bDetail');if(d)d.scrollIntoView({block:'nearest',behavior:'smooth'});}));
+    root.querySelectorAll('tr[data-month]').forEach(r=>{const go=()=>{B.month=+r.dataset.month;renderBudget();const d=$('bDetail');if(d)d.scrollIntoView({block:'nearest',behavior:'smooth'});};
+      r.addEventListener('click',go);r.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}});});
+  }
+  renderBudget();
+
+  /* ---------- Tabs (hash routed) ---------- */
+  function updateBand(){
+    const v=typeof current==='undefined'?'review':current, b=BIZ.find(x=>x.id===biz);
+    if(v==='budget'){$('bandTitle').textContent='Tracks, Little Crane & Daley Storage';$('bandSub').textContent='Budget & forecast · Nov 2026 – Oct 2027 · From QuickBooks P&L';return;}
+    if(v==='nov-11'){$('bandTitle').textContent='The Tracks Bar & Grill';$('bandSub').textContent=CONFIG_PREV.period;return;}
+    $('bandTitle').textContent=b.name; $('bandSub').textContent=REVIEWS.cur[biz].period;
+  }
+  const VIEWS=['review','nov-11','budget']; let current='review';
+  function show(v){
+    if(!VIEWS.includes(v)) v='review';
+    VIEWS.forEach(x=>{$('view-'+x).hidden=x!==v; $('tab-'+x).setAttribute('aria-selected',x===v); $('tab-'+x).tabIndex=x===v?0:-1;});
+    current=v; updateBand();
+  }
+  document.querySelectorAll('.tabs button').forEach((b,i,all)=>{
+    b.addEventListener('click',()=>{location.hash=b.dataset.view;show(b.dataset.view);});
+    b.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowLeft'){const n=all[(i+(e.key==='ArrowRight'?1:all.length-1))%all.length];n.focus();n.click();}});
+  });
+  window.addEventListener('hashchange',()=>show(location.hash.slice(1)));
+  show(location.hash.slice(1));
+})();
+</script>
+</body>
+</html>
